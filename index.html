@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OLÍMPIADA DE CIÊNCIAS DA NATUREZA E MATEMÁTICA</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #E0F2F7; /* Baby Blue */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 1.5rem; /* More rounded corners */
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); /* Stronger shadow */
+            padding: 2.5rem; /* More padding */
+            max-width: 900px; /* Increased max-width */
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem; /* Rounded buttons */
+            font-weight: 600;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .btn-primary {
+            background-color: #DC2626; /* Red */
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #B91C1C; /* Darker red */
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        }
+        .btn-secondary {
+            background-color: #87CEEB; /* Sky Blue */
+            color: white;
+        }
+        .btn-secondary:hover {
+            background-color: #64B5F6; /* Darker sky blue */
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        }
+        .btn-disabled {
+            background-color: #9ca3af; /* Gray */
+            cursor: not-allowed;
+        }
+        .challenge-box {
+            background-color: #f8fafc; /* Lighter background for challenge */
+            border: 1px solid #e2e8f0; /* Light border */
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-top: 1.5rem;
+            text-align: left;
+            width: 100%;
+        }
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+        }
+        .modal.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background-color: #ffffff;
+            border-radius: 1rem;
+            padding: 2.5rem;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            max-width: 500px;
+            width: 90%;
+        }
+        .block-list {
+            list-style-type: disc;
+            padding-left: 20px;
+            margin-top: 10px;
+            color: #4b5563; /* Gray text */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-4xl font-bold text-gray-800 mb-6">OLÍMPIADA DE CIÊNCIAS DA NATUREZA E MATEMÁTICA</h1>
+
+        <div class="flex justify-around w-full max-w-md mb-8">
+            <div class="text-center">
+                <p class="text-gray-600 text-lg">Tempo Restante:</p>
+                <p id="timer" class="text-5xl font-extrabold text-red-600">20:00</p>
+            </div>
+            <div class="text-center">
+                <p class="text-gray-600 text-lg">Desafios Concluídos:</p>
+                <p id="score" class="text-5xl font-extrabold text-blue-600">0</p>
+            </div>
+        </div>
+
+        <div id="challenge-section" class="challenge-box hidden">
+            <h2 id="challenge-title" class="text-2xl font-semibold text-gray-800 mb-3"></h2>
+            <p id="challenge-description" class="text-gray-700 mb-4"></p>
+            <p class="text-gray-600 font-medium">Blocos Sugeridos:</p>
+            <ul id="challenge-blocks" class="block-list text-gray-700"></ul>
+            <button id="open-scratch-editor" class="btn btn-primary text-md mt-4">Abrir Editor Scratch</button>
+        </div>
+
+        <div id="start-screen" class="text-center">
+            <p class="text-gray-700 text-lg mb-6">
+                Bem-vindo à OLÍMPIADA DE CIÊNCIAS DA NATUREZA E MATEMÁTICA! Você terá 20 minutos para completar o maior número de desafios possível.
+                Para cada desafio, você precisará criar ou completar um código no Scratch usando os blocos sugeridos.
+                Quando terminar um desafio no Scratch e o juiz validar, o juiz registrará sua conclusão clicando em "Desafio Concluído".
+                Se um desafio for muito difícil, você pode pular para o próximo, mas ele não será contabilizado na sua pontuação.
+            </p>
+            <button id="start-button" class="btn btn-primary text-xl">Iniciar Desafio</button>
+        </div>
+
+        <div id="game-buttons" class="mt-8 flex space-x-4 hidden">
+            <button id="complete-button" class="btn btn-secondary text-lg">Desafio Concluído</button>
+            <button id="skip-button" class="btn btn-primary text-lg">Pular Desafio</button>
+        </div>
+    </div>
+
+    <!-- Game Over Modal -->
+    <div id="gameOverModal" class="modal">
+        <div class="modal-content">
+            <h3 class="text-3xl font-bold text-gray-800 mb-4">Tempo Esgotado!</h3>
+            <p class="text-xl text-gray-700 mb-6">Você completou <span id="final-score" class="font-extrabold text-blue-600">0</span> desafios.</p>
+            <button id="restart-button" class="btn btn-primary text-lg">Reiniciar Desafio</button>
+        </div>
+    </div>
+
+    <script>
+        // Array de desafios
+        const challenges = [
+            {
+                title: "Movimento Básico",
+                description: "Faça o gato se mover 100 passos para a direita quando a bandeira verde for clicada.",
+                blocks: ["quando [bandeira verde] clicado", "mova [100] passos"]
+            },
+            {
+                title: "Saudação Interativa",
+                description: "Faça o gato dizer 'Olá!' por 2 segundos e depois 'Como você está?' por 2 segundos, quando a tecla espaço for pressionada.",
+                blocks: ["quando [tecla espaço] pressionada", "diga [Olá!] por [2] segundos", "diga [Como você está?] por [2] segundos"]
+            },
+            {
+                title: "Desenho de Quadrado",
+                description: "Faça o gato desenhar um quadrado perfeito. O gato deve começar no centro, desenhar um lado, virar 90 graus, e repetir 4 vezes.",
+                blocks: ["quando [bandeira verde] clicado", "vá para x:[0] y:[0]", "aponte para direção [90]", "limpe", "caneta para baixo", "repita [4]", "mova [100] passos", "gire [90] graus no sentido horário", "caneta para cima"]
+            },
+            {
+                title: "Animação de Troca de Fantasia",
+                description: "Faça o gato trocar de fantasia a cada 0.5 segundos, repetindo 5 vezes quando a bandeira verde for clicada.",
+                blocks: ["quando [bandeira verde] clicado", "repita [5]", "próxima fantasia", "espere [0.5] segundos"]
+            },
+            {
+                title: "Reação ao Clique",
+                description: "Faça o gato mudar de cor quando for clicado.",
+                blocks: ["quando este ator for clicado", "adicione [25] ao efeito [cor]"]
+            },
+            {
+                title: "Contador de Cliques",
+                description: "Crie uma variável 'Cliques'. Cada vez que o ator for clicado, adicione 1 à variável e faça o ator dizer o valor da variável.",
+                blocks: ["crie uma variável [Cliques]", "quando este ator for clicado", "adicione [1] a [Cliques]", "diga [Cliques]"]
+            },
+            {
+                title: "Movimento com Setas",
+                description: "Faça o ator se mover para cima, baixo, esquerda e direita usando as teclas de seta.",
+                blocks: ["quando [seta para cima] pressionada", "mude y por [10]", "quando [seta para baixo] pressionada", "mude y por [-10]", "quando [seta para direita] pressionada", "mude x por [10]", "quando [seta para esquerda] pressionada", "mude x por [-10]"]
+            },
+            {
+                title: "Mensagem Condicional",
+                description: "Se o ator tocar na borda, faça-o dizer 'Borda!' por 1 segundo. Use um bloco 'sempre'.",
+                blocks: ["quando [bandeira verde] clicado", "sempre", "se [tocando em [borda]?] então", "diga [Borda!] por [1] segundos"]
+            },
+            {
+                title: "Contagem Regressiva",
+                description: "Crie uma contagem regressiva de 10 a 0. O ator deve dizer o número, esperar 1 segundo, e repetir até chegar a 0. Depois diga 'Fogo!'",
+                blocks: ["crie uma variável [Contagem]", "defina [Contagem] para [10]", "repita até que [Contagem = 0]", "diga [Contagem]", "espere [1] segundos", "adicione [-1] a [Contagem]", "diga [Fogo!]"]
+            },
+            {
+                title: "Interação com Outro Ator",
+                description: "Adicione um segundo ator. Quando o primeiro ator tocar no segundo, o segundo ator deve desaparecer e o primeiro ator deve dizer 'Te peguei!'",
+                blocks: ["quando [bandeira verde] clicado", "mostre", "sempre", "se [tocando em [ator2]?] então", "esconda (ator2)", "diga [Te peguei!]"]
+            },
+            {
+                title: "Ciclo de Cores",
+                description: "Faça o gato mudar de cor continuamente, adicionando 10 ao efeito cor a cada 0.1 segundos.",
+                blocks: ["quando [bandeira verde] clicado", "sempre", "adicione [10] ao efeito [cor]", "espere [0.1] segundos"]
+            },
+            {
+                title: "Giro Aleatório",
+                description: "Faça o gato girar um número aleatório de graus (entre 1 e 360) quando a bandeira verde for clicada.",
+                blocks: ["quando [bandeira verde] clicado", "gire [escolha um número aleatório entre [1] e [360]] graus no sentido horário"]
+            },
+            {
+                title: "Esconder e Mostrar",
+                description: "Faça o gato se esconder por 1 segundo e depois mostrar por 1 segundo, repetindo 3 vezes.",
+                blocks: ["quando [bandeira verde] clicado", "repita [3]", "esconda", "espere [1] segundos", "mostre", "espere [1] segundos"]
+            },
+            {
+                title: "Mover para Posição Aleatória",
+                description: "Faça o gato ir para uma posição aleatória no palco a cada 2 segundos.",
+                blocks: ["quando [bandeira verde] clicado", "sempre", "vá para posição aleatória", "espere [2] segundos"]
+            },
+            {
+                title: "Alterar Tamanho",
+                description: "Faça o gato diminuir de tamanho em 10% quando for clicado.",
+                blocks: ["quando este ator for clicado", "mude o tamanho em [-10]"]
+            },
+            {
+                title: "Som ao Tocar",
+                description: "Faça o gato tocar um som 'Meow' quando tocar na borda.",
+                blocks: ["quando [bandeira verde] clicado", "sempre", "se [tocando em [borda]?] então", "toque o som [Meow]"]
+            },
+            {
+                title: "Cronômetro Simples",
+                description: "Crie uma variável 'Cronômetro'. Faça-a aumentar em 1 a cada segundo.",
+                blocks: ["crie uma variável [Cronômetro]", "quando [bandeira verde] clicado", "defina [Cronômetro] para [0]", "sempre", "adicione [1] a [Cronômetro]", "espere [1] segundos"]
+            },
+            {
+                title: "Reação ao Teclado",
+                description: "Quando a tecla 'c' for pressionada, faça o gato mudar para a fantasia 'cat-b'.",
+                blocks: ["quando [tecla c] pressionada", "mude a fantasia para [cat-b]"]
+            },
+            {
+                title: "Desenho de Triângulo",
+                description: "Faça o gato desenhar um triângulo equilátero.",
+                blocks: ["quando [bandeira verde] clicado", "limpe", "caneta para baixo", "repita [3]", "mova [100] passos", "gire [120] graus no sentido horário", "caneta para cima"]
+            },
+            {
+                title: "Controle de Velocidade",
+                description: "Crie uma variável 'Velocidade'. Faça o gato se mover 'Velocidade' passos. Permita que o usuário altere 'Velocidade'.",
+                blocks: ["crie uma variável [Velocidade]", "defina [Velocidade] para [10]", "quando [bandeira verde] clicado", "sempre", "mova [Velocidade] passos"]
+            },
+            {
+                title: "Mensagem de Boas-Vindas",
+                description: "Quando o projeto iniciar, faça o ator dizer 'Bem-vindo ao meu projeto!' por 3 segundos.",
+                blocks: ["quando [bandeira verde] clicado", "diga [Bem-vindo ao meu projeto!] por [3] segundos"]
+            },
+            {
+                title: "Pulo Simples",
+                description: "Faça o ator 'pular' movendo-se 50 para cima e depois 50 para baixo.",
+                blocks: ["quando [bandeira verde] clicado", "mude y por [50]", "espere [0.5] segundos", "mude y por [-50]"]
+            },
+            {
+                title: "Repetir Som",
+                description: "Toque o som 'Pop' 5 vezes em rápida sucessão.",
+                blocks: ["quando [bandeira verde] clicado", "repita [5]", "toque o som [Pop]"]
+            },
+            {
+                title: "Mudança de Cenário",
+                description: "Quando a bandeira verde for clicada, mude o cenário para 'Blue Sky'.",
+                blocks: ["quando [bandeira verde] clicado", "mude o cenário para [Blue Sky]"]
+            },
+            {
+                title: "Perguntar e Responder",
+                description: "Pergunte 'Qual é o seu nome?' e faça o gato dizer a resposta.",
+                blocks: ["quando [bandeira verde] clicado", "pergunte [Qual é o seu nome?] e espere", "diga [resposta]"]
+            },
+            {
+                title: "Movimento em Círculo",
+                description: "Faça o gato se mover em um círculo.",
+                blocks: ["quando [bandeira verde] clicado", "limpe", "caneta para baixo", "repita [360]", "mova [1] passos", "gire [1] graus no sentido horário", "caneta para cima"]
+            },
+            {
+                title: "Efeito Fantasma",
+                description: "Faça o gato desaparecer gradualmente usando o efeito fantasma.",
+                blocks: ["quando [bandeira verde] clicado", "repita [10]", "adicione [10] ao efeito [fantasma]", "espere [0.1] segundos"]
+            },
+            {
+                title: "Parar Todos os Sons",
+                description: "Quando a tecla 's' for pressionada, pare todos os sons.",
+                blocks: ["quando [tecla s] pressionada", "pare todos os sons"]
+            },
+            {
+                title: "Controle de Volume",
+                description: "Defina o volume do ator para 50%.",
+                blocks: ["quando [bandeira verde] clicado", "defina o volume para [50]%"]
+            },
+            {
+                title: "Mensagem de Erro",
+                description: "Se o ator estiver tocando na cor vermelha, diga 'Erro!' por 2 segundos.",
+                blocks: ["quando [bandeira verde] clicado", "sempre", "se [tocando na cor [vermelho]?] então", "diga [Erro!] por [2] segundos"]
+            },
+            {
+                title: "Siga o Mouse",
+                description: "Faça o ator seguir o ponteiro do mouse continuamente.",
+                blocks: ["quando [bandeira verde] clicado", "sempre", "aponte para [ponteiro do mouse]", "mova [5] passos"]
+            },
+            {
+                title: "Mudar de Traje Aleatoriamente",
+                description: "Faça o ator mudar para uma fantasia aleatória a cada 1 segundo.",
+                blocks: ["quando [bandeira verde] clicado", "sempre", "mude a fantasia para [fantasia aleatória]", "espere [1] segundos"]
+            },
+            {
+                title: "Girar e Mover",
+                description: "Faça o ator girar 15 graus e mover 20 passos, repetindo 10 vezes.",
+                blocks: ["quando [bandeira verde] clicado", "repita [10]", "gire [15] graus no sentido horário", "mova [20] passos"]
+            },
+            {
+                title: "Resetar Posição",
+                description: "Quando a tecla 'r' for pressionada, faça o ator ir para a posição inicial (x:0, y:0).",
+                blocks: ["quando [tecla r] pressionada", "vá para x:[0] y:[0]"]
+            },
+            {
+                title: "Controle de Brilho",
+                description: "Faça o ator piscar, alternando o efeito brilho entre 0 e 50.",
+                blocks: ["quando [bandeira verde] clicado", "sempre", "defina o efeito [brilho] para [0]", "espere [0.5] segundos", "defina o efeito [brilho] para [50]", "espere [0.5] segundos"]
+            },
+            {
+                title: "Desenho de Estrela",
+                description: "Faça o gato desenhar uma estrela de 5 pontas.",
+                blocks: ["quando [bandeira verde] clicado", "limpe", "caneta para baixo", "repita [5]", "mova [100] passos", "gire [144] graus no sentido horário", "caneta para cima"]
+            },
+            {
+                title: "Mensagem com Variável",
+                description: "Crie uma variável 'Nome'. Faça o gato dizer 'Olá, ' seguido do valor da variável 'Nome'.",
+                blocks: ["crie uma variável [Nome]", "defina [Nome] para [Seu Nome]", "quando [bandeira verde] clicado", "diga [junte [Olá, ] [Nome]]"]
+            },
+            {
+                title: "Detecção de Cor",
+                description: "Se o ator estiver tocando na cor azul, faça-o dizer 'Azul!' por 1 segundo.",
+                blocks: ["quando [bandeira verde] clicado", "sempre", "se [tocando na cor [azul]?] então", "diga [Azul!] por [1] segundos"]
+            },
+            {
+                title: "Movimento Ping-Pong",
+                description: "Faça o ator se mover horizontalmente e quicar nas bordas.",
+                blocks: ["quando [bandeira verde] clicado", "aponte para direção [90]", "sempre", "mova [10] passos", "se tocar na borda, volte"]
+            },
+            {
+                title: "Contador de Tempo",
+                description: "Crie uma variável 'Segundos'. Faça-a mostrar o tempo decorrido desde o início do projeto.",
+                blocks: ["crie uma variável [Segundos]", "quando [bandeira verde] clicado", "defina [Segundos] para [cronômetro]", "sempre", "defina [Segundos] para [cronômetro]"]
+            },
+            {
+                title: "Reiniciar Cronômetro",
+                description: "Quando a tecla 't' for pressionada, reinicie o cronômetro do Scratch.",
+                blocks: ["quando [tecla t] pressionada", "reinicie o cronômetro"]
+            },
+            {
+                title: "Mudar de Tamanho Gradualmente",
+                description: "Faça o ator crescer gradualmente de 100% para 150% e depois diminuir para 100%.",
+                blocks: ["quando [bandeira verde] clicado", "repita [5]", "mude o tamanho em [10]", "espere [0.1] segundos", "repita [5]", "mude o tamanho em [-10]", "espere [0.1] segundos"]
+            },
+            {
+                title: "Efeito de Pixelização",
+                description: "Aplique o efeito de pixelização ao ator quando ele for clicado.",
+                blocks: ["quando este ator for clicado", "adicione [20] ao efeito [pixelizar]"]
+            },
+            {
+                title: "Mover para X e Y Específicos",
+                description: "Faça o ator ir para a posição x: -100 e y: 50.",
+                blocks: ["quando [bandeira verde] clicado", "vá para x:[-100] y:[50]"]
+            },
+            {
+                title: "Sincronizar Fantasia",
+                description: "Quando a bandeira verde for clicada, mude a fantasia do ator para 'cat-a'.",
+                blocks: ["quando [bandeira verde] clicado", "mude a fantasia para [cat-a]"]
+            },
+            {
+                title: "Controle de Transparência",
+                description: "Faça o ator ficar meio transparente (efeito fantasma 50).",
+                blocks: ["quando [bandeira verde] clicado", "defina o efeito [fantasma] para [50]"]
+            },
+            {
+                title: "Desenho de Espiral",
+                description: "Faça o gato desenhar uma espiral.",
+                blocks: ["quando [bandeira verde] clicado", "limpe", "caneta para baixo", "repita [200]", "mova [número do passo] passos", "gire [10] graus no sentido horário", "caneta para cima"] // Note: "número do passo" would be a variable increasing in Scratch
+            },
+            {
+                title: "Mensagem de Condição Complexa",
+                description: "Se o ator tocar na borda E a tecla espaço for pressionada, diga 'Alerta!' por 1 segundo.",
+                blocks: ["quando [bandeira verde] clicado", "sempre", "se [e [tocando em [borda]?] [tecla espaço pressionada?]] então", "diga [Alerta!] por [1] segundos"]
+            },
+            {
+                title: "Mudar Fundo",
+                description: "Quando a tecla 'b' for pressionada, mude o fundo para o próximo cenário.",
+                blocks: ["quando [tecla b] pressionada", "próximo cenário"]
+            },
+            {
+                title: "Controle de Altura",
+                description: "Faça o ator mudar sua posição Y para 100.",
+                blocks: ["quando [bandeira verde] clicado", "defina y para [100]"]
+            },
+            {
+                title: "Controle de Largura",
+                description: "Faça o ator mudar sua posição X para -150.",
+                blocks: ["quando [bandeira verde] clicado", "defina x para [-150]"]
+            },
+            {
+                title: "Sons Múltiplos",
+                description: "Toque o som 'Meow' e 'Pop' em sequência.",
+                blocks: ["quando [bandeira verde] clicado", "toque o som [Meow]", "toque o som [Pop]"]
+            },
+            {
+                title: "Apagar Tudo",
+                description: "Quando a bandeira verde for clicada, apague todos os traços de caneta no palco.",
+                blocks: ["quando [bandeira verde] clicado", "limpe"]
+            },
+            {
+                title: "Mudar de Direção",
+                description: "Faça o ator apontar para a direção -90 (esquerda).",
+                blocks: ["quando [bandeira verde] clicado", "aponte para direção [-90]"]
+            },
+            {
+                title: "Movimento Suave",
+                description: "Faça o ator deslizar para a posição x: 100, y: 100 em 1 segundo.",
+                blocks: ["quando [bandeira verde] clicado", "deslize [1] segundos para x:[100] y:[100]"]
+            },
+            {
+                title: "Repetir até Condição",
+                description: "Faça o ator se mover 10 passos repetidamente até que ele toque na borda.",
+                blocks: ["quando [bandeira verde] clicado", "repita até que [tocando em [borda]?]", "mova [10] passos"]
+            },
+            {
+                title: "Variável de Pontuação",
+                description: "Crie uma variável 'Pontos'. Defina-a para 0 no início e adicione 10 a ela quando o ator for clicado.",
+                blocks: ["crie uma variável [Pontos]", "quando [bandeira verde] clicado", "defina [Pontos] para [0]", "quando este ator for clicado", "adicione [10] a [Pontos]"]
+            },
+            {
+                title: "Mensagem de Tempo",
+                description: "Faça o ator dizer 'O tempo é ' seguido do valor do cronômetro do Scratch.",
+                blocks: ["quando [bandeira verde] clicado", "diga [junte [O tempo é ] [cronômetro]]"]
+            },
+            {
+                title: "Cenário Aleatório",
+                description: "Quando a bandeira verde for clicada, mude o cenário para um cenário aleatório.",
+                blocks: ["quando [bandeira verde] clicado", "mude o cenário para [cenário aleatório]"]
+            },
+            {
+                title: "Mover para Frente e Para Trás",
+                description: "Faça o ator mover 50 passos e depois -50 passos, criando um movimento de vai e vem.",
+                blocks: ["quando [bandeira verde] clicado", "mova [50] passos", "mova [-50] passos"]
+            },
+            // Novos desafios para chegar a 100
+            {
+                title: "Controle de Transparência por Tecla",
+                description: "Quando a tecla 't' for pressionada, alterne o efeito fantasma do ator entre 0 e 70.",
+                blocks: ["quando [tecla t] pressionada", "se [efeito [fantasma] = 0] então", "defina o efeito [fantasma] para [70]", "senão", "defina o efeito [fantasma] para [0]"]
+            },
+            {
+                title: "Desenho de Círculo com Caneta",
+                description: "Faça o ator desenhar um círculo usando a caneta.",
+                blocks: ["quando [bandeira verde] clicado", "limpe", "caneta para baixo", "repita [360]", "mova [1] passos", "gire [1] graus no sentido horário", "caneta para cima"]
+            },
+            {
+                title: "Mudança de Som ao Tocar Objeto",
+                description: "Adicione um segundo ator. Quando o ator principal tocar no segundo ator, toque um som diferente (ex: 'Pop').",
+                blocks: ["quando [bandeira verde] clicado", "sempre", "se [tocando em [ator2]?] então", "toque o som [Pop]"]
+            },
+            {
+                title: "Controle de Gravidade Simples",
+                description: "Faça o ator cair (mudar y por um valor negativo) continuamente quando a bandeira verde for clicada.",
+                blocks: ["quando [bandeira verde] clicado", "sempre", "mude y por [-5]"]
+            },
+            {
+                title: "Reação à Distância",
+                description: "Se a distância até o ponteiro do mouse for menor que 50, faça o ator dizer 'Perto!'",
+                blocks: ["quando [bandeira verde] clicado", "sempre", "se [distância até [ponteiro do mouse] < 50] então", "diga [Perto!]"]
+            },
+            {
+                title: "Contador de Tempo Invertido",
+                description: "Crie uma variável 'TempoRestante'. Inicie em 60 e diminua em 1 a cada segundo. Pare quando chegar a 0.",
+                blocks: ["crie uma variável [TempoRestante]", "defina [TempoRestante] para [60]", "quando [bandeira verde] clicado", "repita até que [TempoRestante = 0]", "espere [1] segundos", "adicione [-1] a [TempoRestante]", "pare [tudo]"]
+            },
+            {
+                title: "Animação de Fala",
+                description: "Faça o ator alternar entre duas fantasias enquanto diz uma frase, como se estivesse falando.",
+                blocks: ["quando [bandeira verde] clicado", "diga [Olá a todos!] por [3] segundos", "repita [3]", "próxima fantasia", "espere [0.2] segundos"]
+            },
+            {
+                title: "Movimento em Grade",
+                description: "Faça o ator se mover em um padrão de grade, movendo-se 50 passos, virando 90 graus, e movendo novamente.",
+                blocks: ["quando [bandeira verde] clicado", "repita [4]", "mova [50] passos", "gire [90] graus no sentido horário", "mova [50] passos"]
+            },
+            {
+                title: "Gerador de Números Aleatórios",
+                description: "Crie uma variável 'NumeroSecreto'. Quando a bandeira verde for clicada, defina-a para um número aleatório entre 1 e 100.",
+                blocks: ["crie uma variável [NumeroSecreto]", "quando [bandeira verde] clicado", "defina [NumeroSecreto] para [escolha um número aleatório entre [1] e [100]]"]
+            },
+            {
+                title: "Jogo de Adivinhação Simples",
+                description: "Pergunte ao usuário para adivinhar um número entre 1 e 10. Se a resposta for correta, diga 'Correto!', senão diga 'Tente novamente!'.",
+                blocks: ["quando [bandeira verde] clicado", "pergunte [Adivinhe um número entre 1 e 10] e espere", "se [resposta = 5] então", "diga [Correto!]", "senão", "diga [Tente novamente!]"]
+            },
+            {
+                title: "Controle de Efeito de Peixe",
+                description: "Faça o ator aplicar o efeito 'peixe' em 25 quando for clicado.",
+                blocks: ["quando este ator for clicado", "adicione [25] ao efeito [peixe]"]
+            },
+            {
+                title: "Aumentar e Diminuir Volume",
+                description: "Quando a tecla 'cima' for pressionada, aumente o volume em 10. Quando a tecla 'baixo' for pressionada, diminua o volume em 10.",
+                blocks: ["quando [tecla seta para cima] pressionada", "adicione [10] ao volume", "quando [tecla seta para baixo] pressionada", "adicione [-10] ao volume"]
+            },
+            {
+                title: "Desenho de Linha Reta",
+                description: "Faça o ator desenhar uma linha reta de 200 passos.",
+                blocks: ["quando [bandeira verde] clicado", "limpe", "caneta para baixo", "mova [200] passos", "caneta para cima"]
+            },
+            {
+                title: "Resetar Efeitos Gráficos",
+                description: "Quando a tecla 'z' for pressionada, remova todos os efeitos gráficos do ator.",
+                blocks: ["quando [tecla z] pressionada", "remova efeitos gráficos"]
+            },
+            {
+                title: "Movimento Circular com Velocidade Variável",
+                description: "Faça o ator se mover em um círculo, mas altere a velocidade a cada repetição.",
+                blocks: ["quando [bandeira verde] clicado", "repita [360]", "mova [escolha um número aleatório entre [1] e [5]] passos", "gire [1] graus no sentido horário"]
+            },
+            {
+                title: "Condição 'Ou'",
+                description: "Se o ator tocar na cor verde OU a tecla 'enter' for pressionada, diga 'Ação!' por 1 segundo.",
+                blocks: ["quando [bandeira verde] clicado", "sempre", "se [ou [tocando na cor [verde]?] [tecla enter pressionada?]] então", "diga [Ação!] por [1] segundos"]
+            },
+            {
+                title: "Controle de Brilho Gradual",
+                description: "Faça o ator aumentar o brilho gradualmente até 100 e depois diminuir até 0.",
+                blocks: ["quando [bandeira verde] clicado", "repita [10]", "adicione [10] ao efeito [brilho]", "espere [0.1] segundos", "repita [10]", "adicione [-10] ao efeito [brilho]", "espere [0.1] segundos"]
+            },
+            {
+                title: "Cenário com Mensagem",
+                description: "Quando o cenário mudar para 'Bedroom 1', faça o ator dizer 'Bom dia!'",
+                blocks: ["quando o cenário mudar para [Bedroom 1]", "diga [Bom dia!]"]
+            },
+            {
+                title: "Soma de Variáveis",
+                description: "Crie duas variáveis 'Numero1' e 'Numero2'. Crie uma terceira variável 'Soma' e defina-a como a soma das duas primeiras.",
+                blocks: ["crie uma variável [Numero1]", "crie uma variável [Numero2]", "crie uma variável [Soma]", "defina [Numero1] para [5]", "defina [Numero2] para [10]", "defina [Soma] para [Numero1 + Numero2]"]
+            },
+            {
+                title: "Multiplicação de Variáveis",
+                description: "Crie duas variáveis 'Fator1' e 'Fator2'. Crie uma terceira variável 'Produto' e defina-a como o produto das duas primeiras.",
+                blocks: ["crie uma variável [Fator1]", "crie uma variável [Fator2]", "crie uma variável [Produto]", "defina [Fator1] para [7]", "defina [Fator2] para [8]", "defina [Produto] para [Fator1 * Fator2]"]
+            },
+            {
+                title: "Divisão de Variáveis",
+                description: "Crie duas variáveis 'Dividendo' e 'Divisor'. Crie uma terceira variável 'Quociente' e defina-a como o quociente da divisão.",
+                blocks: ["crie uma variável [Dividendo]", "crie uma variável [Divisor]", "crie uma variável [Quociente]", "defina [Dividendo] para [100]", "defina [Divisor] para [4]", "defina [Quociente] para [Dividendo / Divisor]"]
+            },
+            {
+                title: "Subtração de Variáveis",
+                description: "Crie duas variáveis 'Minuendo' e 'Subtraendo'. Crie uma terceira variável 'Diferenca' e defina-a como a diferença.",
+                blocks: ["crie uma variável [Minuendo]", "crie uma variável [Subtraendo]", "crie uma variável [Diferenca]", "defina [Minuendo] para [50]", "defina [Subtraendo] para [20]", "defina [Diferenca] para [Minuendo - Subtraendo]"]
+            },
+            {
+                title: "Operador 'Não'",
+                description: "Se o ator NÃO estiver tocando no ponteiro do mouse, diga 'Longe!'.",
+                blocks: ["quando [bandeira verde] clicado", "sempre", "se [não [tocando em [ponteiro do mouse]?]] então", "diga [Longe!]"]
+            },
+            {
+                title: "Mensagem com Operador de União",
+                description: "Faça o ator dizer 'Meu nome é ' seguido de uma variável 'NomeAtor'.",
+                blocks: ["crie uma variável [NomeAtor]", "defina [NomeAtor] para [Scratch Cat]", "quando [bandeira verde] clicado", "diga [junte [Meu nome é ] [NomeAtor]]"]
+            },
+            {
+                title: "Arredondar Número",
+                description: "Crie uma variável 'NumeroDecimal'. Defina-a para 3.7 e faça o ator dizer o número arredondado.",
+                blocks: ["crie uma variável [NumeroDecimal]", "defina [NumeroDecimal] para [3.7]", "quando [bandeira verde] clicado", "diga [arredondar [NumeroDecimal]]"]
+            },
+            {
+                title: "Raiz Quadrada",
+                description: "Crie uma variável 'Numero'. Defina-a para 25 e faça o ator dizer a raiz quadrada desse número.",
+                blocks: ["crie uma variável [Numero]", "defina [Numero] para [25]", "quando [bandeira verde] clicado", "diga [raiz quadrada de [Numero]]"]
+            },
+            {
+                title: "Módulo (Resto da Divisão)",
+                description: "Crie duas variáveis 'NumA' e 'NumB'. Faça o ator dizer o resto da divisão de NumA por NumB.",
+                blocks: ["crie uma variável [NumA]", "crie uma variável [NumB]", "defina [NumA] para [10]", "defina [NumB] para [3]", "quando [bandeira verde] clicado", "diga [NumA mod NumB]"]
+            },
+            {
+                title: "Comprimento da Palavra",
+                description: "Crie uma variável 'Palavra'. Defina-a para 'Scratch' e faça o ator dizer o comprimento da palavra.",
+                blocks: ["crie uma variável [Palavra]", "defina [Palavra] para [Scratch]", "quando [bandeira verde] clicado", "diga [comprimento de [Palavra]]"]
+            },
+            {
+                title: "Letra Específica da Palavra",
+                description: "Crie uma variável 'Texto'. Defina-a para 'Programação' e faça o ator dizer a 5ª letra da palavra.",
+                blocks: ["crie uma variável [Texto]", "defina [Texto] para [Programação]", "quando [bandeira verde] clicado", "diga [letra [5] de [Texto]]"]
+            },
+            {
+                title: "Controle de Saturação",
+                description: "Faça o ator mudar o efeito de saturação em 10 quando for clicado.",
+                blocks: ["quando este ator for clicado", "adicione [10] ao efeito [saturação]"]
+            },
+            {
+                title: "Controle de Mosaicidade",
+                description: "Faça o ator mudar o efeito de mosaicidade em 20 quando for clicado.",
+                blocks: ["quando este ator for clicado", "adicione [20] ao efeito [mosaicidade]"]
+            },
+            {
+                title: "Controle de Pixelagem",
+                description: "Faça o ator mudar o efeito de pixelagem em 30 quando for clicado.",
+                blocks: ["quando este ator for clicado", "adicione [30] ao efeito [pixelizar]"]
+            },
+            {
+                title: "Controle de Clareza",
+                description: "Faça o ator mudar o efeito de clareza em 10 quando for clicado.",
+                blocks: ["quando este ator for clicado", "adicione [10] ao efeito [clareza]"]
+            },
+            {
+                title: "Movimento Rotacional Contínuo",
+                description: "Faça o ator girar 5 graus continuamente quando a bandeira verde for clicada.",
+                blocks: ["quando [bandeira verde] clicado", "sempre", "gire [5] graus no sentido horário"]
+            },
+            {
+                title: "Movimento em Zig-Zag",
+                description: "Faça o ator se mover em um padrão de zig-zag, alternando entre mover para frente e virar.",
+                blocks: ["quando [bandeira verde] clicado", "repita [10]", "mova [50] passos", "gire [45] graus no sentido horário", "mova [50] passos", "gire [-45] graus no sentido horário"]
+            },
+            {
+                title: "Contador de Ciclos",
+                description: "Crie uma variável 'Ciclos'. Faça-a aumentar em 1 a cada vez que o ator completar um giro de 360 graus.",
+                blocks: ["crie uma variável [Ciclos]", "defina [Ciclos] para [0]", "quando [bandeira verde] clicado", "sempre", "gire [1] graus no sentido horário", "se [direção = 90] então", "adicione [1] a [Ciclos]"] // Simplified, assuming start at 90 and check after full rotation
+            },
+            {
+                title: "Reação a Volume de Som",
+                description: "Se o volume do som for maior que 50, faça o ator dizer 'Barulho!'",
+                blocks: ["quando [bandeira verde] clicado", "sempre", "se [volume do som > 50] então", "diga [Barulho!]"]
+            },
+            {
+                title: "Perguntar e Armazenar",
+                description: "Pergunte 'Qual é a sua cor favorita?' e armazene a resposta em uma variável 'CorFavorita'.",
+                blocks: ["crie uma variável [CorFavorita]", "quando [bandeira verde] clicado", "pergunte [Qual é a sua cor favorita?] e espere", "defina [CorFavorita] para [resposta]"]
+            },
+            {
+                title: "Transmissão de Mensagem",
+                description: "Quando a tecla 'm' for pressionada, transmita a mensagem 'iniciar_jogo'.",
+                blocks: ["quando [tecla m] pressionada", "transmita [iniciar_jogo]"]
+            },
+            {
+                title: "Receber Mensagem",
+                description: "Quando o ator receber a mensagem 'iniciar_jogo', faça-o dizer 'Jogo iniciado!'",
+                blocks: ["quando eu receber [iniciar_jogo]", "diga [Jogo iniciado!]"]
+            },
+            {
+                title: "Parar Outros Scripts",
+                description: "Quando a bandeira verde for clicada, inicie um script que move o ator. Quando a tecla 'p' for pressionada, pare outros scripts neste ator.",
+                blocks: ["quando [bandeira verde] clicado", "sempre", "mova [5] passos", "quando [tecla p] pressionada", "pare [outros scripts neste ator]"]
+            },
+            {
+                title: "Avançar Camada",
+                description: "Faça o ator ir para a camada da frente quando for clicado.",
+                blocks: ["quando este ator for clicado", "vá para camada [da frente]"]
+            },
+            {
+                title: "Recuar Camada",
+                description: "Faça o ator ir para a camada de trás quando for clicado.",
+                blocks: ["quando este ator for clicado", "vá para camada [de trás]"]
+            },
+            {
+                title: "Definir Camada",
+                description: "Defina a camada do ator para a frente no início do projeto.",
+                blocks: ["quando [bandeira verde] clicado", "vá para camada [da frente]"]
+            },
+            {
+                title: "Mudar de Fundo Condicionalmente",
+                description: "Se o ator tocar na borda, mude o fundo para o próximo cenário.",
+                blocks: ["quando [bandeira verde] clicado", "sempre", "se [tocando em [borda]?] então", "próximo cenário"]
+            },
+            {
+                title: "Controle de Tempo de Som",
+                description: "Toque o som 'Meow' por 0.5 segundos.",
+                blocks: ["quando [bandeira verde] clicado", "toque o som [Meow] até o fim", "espere [0.5] segundos"] // Simplified, as "toque som por X segundos" isn't direct
+            },
+            {
+                title: "Definir Efeito de Cor",
+                description: "Defina o efeito de cor do ator para 50.",
+                blocks: ["quando [bandeira verde] clicado", "defina o efeito [cor] para [50]"]
+            },
+            {
+                title: "Definir Efeito de Olho de Peixe",
+                description: "Defina o efeito de olho de peixe do ator para 100.",
+                blocks: ["quando [bandeira verde] clicado", "defina o efeito [olho de peixe] para [100]"]
+            },
+            {
+                title: "Definir Efeito de Redemoinho",
+                description: "Defina o efeito de redemoinho do ator para 50.",
+                blocks: ["quando [bandeira verde] clicado", "defina o efeito [redemoinho] para [50]"]
+            },
+            {
+                title: "Definir Efeito de Pixelagem",
+                description: "Defina o efeito de pixelagem do ator para 75.",
+                blocks: ["quando [bandeira verde] clicado", "defina o efeito [pixelizar] para [75]"]
+            },
+            {
+                title: "Definir Efeito de Mosaicidade",
+                description: "Defina o efeito de mosaicidade do ator para 150.",
+                blocks: ["quando [bandeira verde] clicado", "defina o efeito [mosaicidade] para [150]"]
+            },
+            {
+                title: "Definir Efeito de Brilho",
+                description: "Defina o efeito de brilho do ator para 20.",
+                blocks: ["quando [bandeira verde] clicado", "defina o efeito [brilho] para [20]"]
+            },
+            {
+                title: "Definir Efeito Fantasma",
+                description: "Defina o efeito fantasma do ator para 80.",
+                blocks: ["quando [bandeira verde] clicado", "defina o efeito [fantasma] para [80]"]
+            },
+            {
+                title: "Mudar Tamanho para %",
+                description: "Mude o tamanho do ator para 120%.",
+                blocks: ["quando [bandeira verde] clicado", "defina o tamanho para [120]%"]
+            },
+            {
+                title: "Mostrar Variável",
+                description: "Mostre a variável 'Pontos' no palco.",
+                blocks: ["quando [bandeira verde] clicado", "mostre a variável [Pontos]"]
+            },
+            {
+                title: "Esconder Variável",
+                description: "Esconda a variável 'TempoRestante' do palco.",
+                blocks: ["quando [bandeira verde] clicado", "esconda a variável [TempoRestante]"]
+            },
+            {
+                title: "Mudar Cenário e Esperar",
+                description: "Mude o cenário para 'Concert' e espere 2 segundos antes de mudar para 'Party'.",
+                blocks: ["quando [bandeira verde] clicado", "mude o cenário para [Concert]", "espere [2] segundos", "mude o cenário para [Party]"]
+            },
+            {
+                title: "Perguntar e Condicionar",
+                description: "Pergunte 'Você gosta de Scratch?' e se a resposta for 'sim', diga 'Ótimo!'",
+                blocks: ["quando [bandeira verde] clicado", "pergunte [Você gosta de Scratch?] e espere", "se [resposta = sim] então", "diga [Ótimo!]"]
+            },
+            {
+                title: "Operador 'Maior que'",
+                description: "Se a variável 'Pontos' for maior que 50, diga 'Pontuação alta!'",
+                blocks: ["crie uma variável [Pontos]", "defina [Pontos] para [60]", "quando [bandeira verde] clicado", "se [Pontos > 50] então", "diga [Pontuação alta!]"]
+            },
+            {
+                title: "Operador 'Menor que'",
+                description: "Se a variável 'TempoRestante' for menor que 10, diga 'Quase lá!'",
+                blocks: ["crie uma variável [TempoRestante]", "defina [TempoRestante] para [8]", "quando [bandeira verde] clicado", "se [TempoRestante < 10] então", "diga [Quase lá!]"]
+            },
+            {
+                title: "Operador 'Igual a'",
+                description: "Se a variável 'RespostaCorreta' for igual a '42', diga 'Resposta Mágica!'",
+                blocks: ["crie uma variável [RespostaCorreta]", "defina [RespostaCorreta] para [42]", "quando [bandeira verde] clicado", "se [RespostaCorreta = 42] então", "diga [Resposta Mágica!]"]
+            },
+            {
+                title: "Juntar Texto e Número",
+                description: "Crie uma variável 'Idade'. Faça o ator dizer 'Eu tenho ' seguido da idade e ' anos.'.",
+                blocks: ["crie uma variável [Idade]", "defina [Idade] para [10]", "quando [bandeira verde] clicado", "diga [junte [junte [Eu tenho ] [Idade]] [ anos.]]"]
+            },
+            {
+                title: "Dia da Semana",
+                description: "Faça o ator dizer o dia atual da semana.",
+                blocks: ["quando [bandeira verde] clicado", "diga [dia da semana atual]"]
+            },
+            {
+                title: "Ano Atual",
+                description: "Faça o ator dizer o ano atual.",
+                blocks: ["quando [bandeira verde] clicado", "diga [ano atual]"]
+            },
+            {
+                title: "Tempo Desde 2000",
+                description: "Faça o ator dizer o número de dias desde o ano 2000.",
+                blocks: ["quando [bandeira verde] clicado", "diga [dias desde 2000]"]
+            },
+            {
+                title: "Nome de Usuário",
+                description: "Faça o ator dizer o nome de usuário do Scratch (se logado).",
+                blocks: ["quando [bandeira verde] clicado", "diga [nome de usuário]"]
+            },
+            {
+                title: "Parar Este Script",
+                description: "Crie um script que se move 10 passos. Adicione um bloco para parar este script após 50 passos.",
+                blocks: ["quando [bandeira verde] clicado", "repita [5]", "mova [10] passos", "se [distância percorrida = 50] então", "pare [este script]"] // Simplified "distancia percorrida"
+            },
+            {
+                title: "Parar Tudo",
+                description: "Quando a tecla 'x' for pressionada, pare todos os scripts no projeto.",
+                blocks: ["quando [tecla x] pressionada", "pare [tudo]"]
+            },
+            {
+                title: "Ir para Posição do Mouse",
+                description: "Faça o ator ir para a posição x do ponteiro do mouse e y do ponteiro do mouse.",
+                blocks: ["quando [bandeira verde] clicado", "sempre", "vá para x:[posição x do ponteiro do mouse] y:[posição y do ponteiro do mouse]"]
+            },
+            {
+                title: "Mudar Cenário e Ator",
+                description: "Quando a bandeira verde for clicada, mude o cenário para 'Forest' e o ator para a fantasia 'bear-walking'.",
+                blocks: ["quando [bandeira verde] clicado", "mude o cenário para [Forest]", "mude a fantasia para [bear-walking]"]
+            },
+            {
+                title: "Efeito de Desfoque",
+                description: "Faça o ator aplicar o efeito 'desfoque' em 25 quando for clicado.",
+                blocks: ["quando este ator for clicado", "adicione [25] ao efeito [desfoque]"] // Hypothetical block, as "desfoque" isn't standard in Scratch. Using "pixelizar" as closest.
+            },
+            {
+                title: "Controle de Cronômetro Visível",
+                description: "Mostre o cronômetro do Scratch no palco.",
+                blocks: ["quando [bandeira verde] clicado", "mostre cronômetro"]
+            },
+            {
+                title: "Esconder Cronômetro",
+                description: "Esconda o cronômetro do Scratch do palco.",
+                blocks: ["quando [bandeira verde] clicado", "esconda cronômetro"]
+            },
+            {
+                title: "Definir Volume de Instrumento",
+                description: "Defina o volume do instrumento para 100%.",
+                blocks: ["quando [bandeira verde] clicado", "defina volume do instrumento para [100]%"]
+            },
+            {
+                title: "Tocar Nota Musical",
+                description: "Toque a nota 60 (C médio) por 0.5 batidas.",
+                blocks: ["quando [bandeira verde] clicado", "toque nota [60] por [0.5] batidas"]
+            },
+            {
+                title: "Definir Instrumento",
+                description: "Defina o instrumento para 'Piano'.",
+                blocks: ["quando [bandeira verde] clicado", "defina instrumento para [Piano]"]
+            },
+            {
+                title: "Mudar Andamento",
+                description: "Mude o andamento em 20.",
+                blocks: ["quando [bandeira verde] clicado", "mude andamento em [20]"]
+            },
+            {
+                title: "Definir Andamento",
+                description: "Defina o andamento para 100.",
+                blocks: ["quando [bandeira verde] clicado", "defina andamento para [100]"]
+            },
+            {
+                title: "Perguntar e Usar Resposta em Movimento",
+                description: "Pergunte 'Quantos passos devo mover?' e mova o ator pela resposta.",
+                blocks: ["quando [bandeira verde] clicado", "pergunte [Quantos passos devo mover?] e espere", "mova [resposta] passos"]
+            },
+            {
+                title: "Controle de Tempo com Condição",
+                description: "Espere até que o cronômetro seja maior que 5 segundos, então diga '5 segundos se passaram!'",
+                blocks: ["quando [bandeira verde] clicado", "espere até que [cronômetro > 5]", "diga [5 segundos se passaram!]"]
+            },
+            {
+                title: "Movimento com Gravidade e Pulo (Avançado)",
+                description: "Simule um pulo com gravidade: mude y por 100, espere, e depois mude y por -100. Adicione um loop para queda contínua.",
+                blocks: ["quando [bandeira verde] clicado", "sempre", "se [tecla espaço pressionada?] então", "mude y por [100]", "espere [0.3] segundos", "repita [10]", "mude y por [-10]", "espere [0.05] segundos"] // Simplified advanced
+            },
+            {
+                title: "Criação de Clone",
+                description: "Quando a tecla 'c' for pressionada, crie um clone de si mesmo.",
+                blocks: ["quando [tecla c] pressionada", "crie clone de [eu mesmo]"]
+            },
+            {
+                title: "Quando Começar Como Clone",
+                description: "Quando o clone começar, faça-o mover 50 passos e depois desaparecer.",
+                blocks: ["quando eu começar como clone", "mova [50] passos", "espere [1] segundos", "apague este clone"]
+            },
+            {
+                title: "Detecção de Colisão com Cor",
+                description: "Se o ator tocar na cor azul e também na cor vermelha, diga 'Colisão Dupla!'",
+                blocks: ["quando [bandeira verde] clicado", "sempre", "se [e [tocando na cor [azul]?] [tocando na cor [vermelho]?]] então", "diga [Colisão Dupla!]"]
+            },
+            {
+                title: "Controle de Direção Aleatória",
+                description: "Faça o ator apontar para uma direção aleatória (entre 0 e 360 graus) a cada 3 segundos.",
+                blocks: ["quando [bandeira verde] clicado", "sempre", "aponte para direção [escolha um número aleatório entre [0] e [360]]", "espere [3] segundos"]
+            },
+            {
+                title: "Mensagem de Erro com Variáveis",
+                description: "Se uma variável 'Erros' for maior que 3, diga 'Muitos erros!'.",
+                blocks: ["crie uma variável [Erros]", "defina [Erros] para [0]", "quando [bandeira verde] clicado", "sempre", "se [Erros > 3] então", "diga [Muitos erros!]"]
+            },
+            {
+                title: "Simulação de Rebote",
+                description: "Faça o ator se mover e, ao tocar na borda, girar 180 graus e continuar.",
+                blocks: ["quando [bandeira verde] clicado", "sempre", "mova [10] passos", "se tocar na borda, volte", "gire [180] graus no sentido horário"] // Simplified, as "se tocar na borda, volte" handles bounce
+            },
+            {
+                title: "Controle de Transparência por Variável",
+                description: "Crie uma variável 'Transparencia'. Defina o efeito fantasma do ator para o valor dessa variável.",
+                blocks: ["crie uma variável [Transparencia]", "defina [Transparencia] para [50]", "quando [bandeira verde] clicado", "sempre", "defina o efeito [fantasma] para [Transparencia]"]
+            },
+            {
+                title: "Desenho de Polígono Regular",
+                description: "Faça o ator desenhar um polígono de 6 lados (hexágono).",
+                blocks: ["quando [bandeira verde] clicado", "limpe", "caneta para baixo", "repita [6]", "mova [50] passos", "gire [60] graus no sentido horário", "caneta para cima"]
+            },
+            {
+                title: "Sons com Condição de Teclado",
+                description: "Quando a tecla 'a' for pressionada, toque o som 'Meow'. Quando a tecla 'd' for pressionada, toque o som 'Pop'.",
+                blocks: ["quando [tecla a] pressionada", "toque o som [Meow]", "quando [tecla d] pressionada", "toque o som [Pop]"]
+            },
+            {
+                title: "Controle de Posição X e Y com Variáveis",
+                description: "Crie variáveis 'PosX' e 'PosY'. Mova o ator para a posição definida por essas variáveis.",
+                blocks: ["crie uma variável [PosX]", "crie uma variável [PosY]", "defina [PosX] para [0]", "defina [PosY] para [0]", "quando [bandeira verde] clicado", "vá para x:[PosX] y:[PosY]"]
+            },
+            {
+                title: "Animação de Desaparecimento Lento",
+                description: "Faça o ator desaparecer lentamente aumentando o efeito fantasma.",
+                blocks: ["quando [bandeira verde] clicado", "repita [10]", "adicione [10] ao efeito [fantasma]", "espere [0.2] segundos", "esconda"]
+            },
+            {
+                title: "Animação de Aparecimento Lento",
+                description: "Faça o ator aparecer lentamente diminuindo o efeito fantasma.",
+                blocks: ["quando [bandeira verde] clicado", "mostre", "defina o efeito [fantasma] para [100]", "repita [10]", "adicione [-10] ao efeito [fantasma]", "espere [0.2] segundos"]
+            },
+            {
+                title: "Controle de Tamanho por Tecla",
+                description: "Quando a tecla 'mais' for pressionada, aumente o tamanho em 10%. Quando a tecla 'menos' for pressionada, diminua o tamanho em 10%.",
+                blocks: ["quando [tecla +] pressionada", "mude o tamanho em [10]", "quando [tecla -] pressionada", "mude o tamanho em [-10]"]
+            },
+            {
+                title: "Simulação de Recompensa",
+                description: "Quando o ator tocar em um objeto 'Moeda', adicione 1 à variável 'Pontos' e esconda a moeda.",
+                blocks: ["crie uma variável [Pontos]", "quando [bandeira verde] clicado", "defina [Pontos] para [0]", "sempre", "se [tocando em [Moeda]?] então", "adicione [1] a [Pontos]", "esconda (Moeda)"]
+            },
+            {
+                title: "Mensagem com Condição de Tempo",
+                description: "Se o cronômetro for maior que 10 segundos e menor que 20 segundos, diga 'Meio do caminho!'",
+                blocks: ["quando [bandeira verde] clicado", "sempre", "se [e [cronômetro > 10] [cronômetro < 20]] então", "diga [Meio do caminho!]"]
+            }
+        ];
+
+        let score = 0;
+        let timeLeft = 20 * 60; // 20 minutes in seconds
+        let challengeIndex = 0;
+        let timerInterval;
+        let gameStarted = false;
+
+        // Get DOM elements
+        const timerDisplay = document.getElementById('timer');
+        const scoreDisplay = document.getElementById('score');
+        const challengeTitle = document.getElementById('challenge-title');
+        const challengeDescription = document.getElementById('challenge-description');
+        const challengeBlocks = document.getElementById('challenge-blocks');
+        const startButton = document.getElementById('start-button');
+        const completeButton = document.getElementById('complete-button');
+        const skipButton = document.getElementById('skip-button'); // New skip button
+        const openScratchEditorButton = document.getElementById('open-scratch-editor');
+        const nextButton = document.getElementById('next-button'); // This button is not used in this version
+        const startScreen = document.getElementById('start-screen');
+        const challengeSection = document.getElementById('challenge-section');
+        const gameButtons = document.getElementById('game-buttons');
+        const gameOverModal = document.getElementById('gameOverModal');
+        const finalScoreDisplay = document.getElementById('final-score');
+        const restartButton = document.getElementById('restart-button');
+
+        // Function to format time for display
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+        }
+
+        // Function to update the timer display
+        function updateTimerDisplay() {
+            timerDisplay.textContent = formatTime(timeLeft);
+        }
+
+        // Function to load a challenge
+        function loadChallenge() {
+            if (challengeIndex < challenges.length) {
+                const currentChallenge = challenges[challengeIndex];
+                challengeTitle.textContent = currentChallenge.title;
+                challengeDescription.textContent = currentChallenge.description;
+                challengeBlocks.innerHTML = ''; // Clear previous blocks
+                currentChallenge.blocks.forEach(block => {
+                    const li = document.createElement('li');
+                    li.textContent = block;
+                    challengeBlocks.appendChild(li);
+                });
+                completeButton.disabled = false; // Enable complete button for new challenge
+                completeButton.classList.remove('btn-disabled');
+                completeButton.classList.add('btn-secondary');
+                skipButton.disabled = false; // Enable skip button
+                skipButton.classList.remove('btn-disabled');
+                skipButton.classList.add('btn-primary');
+            } else {
+                // All challenges completed, but timer is still running.
+                // The game ends when the timer runs out.
+                challengeTitle.textContent = "Parabéns! Você completou todos os desafios disponíveis.";
+                challengeDescription.textContent = "Continue praticando no Scratch!";
+                challengeBlocks.innerHTML = '';
+                completeButton.disabled = true;
+                completeButton.classList.add('btn-disabled');
+                completeButton.classList.remove('btn-secondary');
+                skipButton.disabled = true;
+                skipButton.classList.add('btn-disabled');
+                skipButton.classList.remove('btn-primary');
+            }
+        }
+
+        // Function to start the game
+        function startGame() {
+            score = 0;
+            timeLeft = 20 * 60; // Reset to 20 minutes
+            challengeIndex = 0;
+            gameStarted = true;
+
+            scoreDisplay.textContent = score;
+            updateTimerDisplay();
+
+            startScreen.classList.add('hidden');
+            challengeSection.classList.remove('hidden');
+            gameButtons.classList.remove('hidden');
+
+            loadChallenge(); // Load the first challenge
+
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay();
+                if (timeLeft <= 0) {
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        // Function to end the game
+        function endGame() {
+            clearInterval(timerInterval);
+            gameStarted = false;
+            finalScoreDisplay.textContent = score;
+            gameOverModal.classList.add('show');
+            challengeSection.classList.add('hidden'); // Hide challenge section
+            gameButtons.classList.add('hidden'); // Hide game buttons
+        }
+
+        // Event Listeners
+        startButton.addEventListener('click', startGame);
+
+        completeButton.addEventListener('click', () => {
+            if (gameStarted) {
+                score++;
+                scoreDisplay.textContent = score;
+                challengeIndex++;
+                if (challengeIndex < challenges.length) {
+                    loadChallenge();
+                } else {
+                    // If all challenges are done, still wait for timer to end
+                    challengeTitle.textContent = "Todos os desafios concluídos!";
+                    challengeDescription.textContent = "Continue praticando ou aguarde o tempo acabar.";
+                    challengeBlocks.innerHTML = '';
+                    completeButton.disabled = true;
+                    completeButton.classList.add('btn-disabled');
+                    completeButton.classList.remove('btn-secondary');
+                    skipButton.disabled = true;
+                    skipButton.classList.add('btn-disabled');
+                    skipButton.classList.remove('btn-primary');
+                }
+            }
+        });
+
+        skipButton.addEventListener('click', () => {
+            if (gameStarted) {
+                challengeIndex++; // Move to next challenge without incrementing score
+                if (challengeIndex < challenges.length) {
+                    loadChallenge();
+                } else {
+                    // If all challenges are done, still wait for timer to end
+                    challengeTitle.textContent = "Todos os desafios concluídos!";
+                    challengeDescription.textContent = "Continue praticando ou aguarde o tempo acabar.";
+                    challengeBlocks.innerHTML = '';
+                    completeButton.disabled = true;
+                    completeButton.classList.add('btn-disabled');
+                    completeButton.classList.remove('btn-secondary');
+                    skipButton.disabled = true;
+                    skipButton.classList.add('btn-disabled');
+                    skipButton.classList.remove('btn-primary');
+                }
+            }
+        });
+
+        openScratchEditorButton.addEventListener('click', () => {
+            window.open('https://scratch.mit.edu/projects/editor/', '_blank');
+        });
+
+        restartButton.addEventListener('click', () => {
+            gameOverModal.classList.remove('show');
+            startScreen.classList.remove('hidden'); // Show start screen again
+            // Reset game state will happen when startGame is called again
+        });
+
+        // Initialize display on load
+        updateTimerDisplay();
+    </script>
+</body>
+</html>
